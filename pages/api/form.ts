@@ -4,15 +4,18 @@ import { IncomingForm } from 'formidable';
 import fs from 'fs';
 import path from 'path';
 
+const prisma = new PrismaClient();
+
 export const config = {
   api: {
     bodyParser: false,
   },
 };
 
-const prisma = new PrismaClient();
-
-const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+// Adjust this based on Vercel's file system
+const uploadDir = process.env.NODE_ENV === 'production' 
+  ? '/tmp/uploads'  // Use /tmp for Vercel
+  : path.join(process.cwd(), 'public', 'uploads');
 
 // Ensure upload directory exists
 if (!fs.existsSync(uploadDir)) {
@@ -60,33 +63,49 @@ async function getDocuments(req: NextApiRequest, res: NextApiResponse) {
 
 async function getDocumentContent(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
+  console.log(`Attempting to fetch document with id: ${id}`);
+  
   try {
-    console.log(`Fetching content for document id: ${id}`);
     const document = await prisma.document.findUnique({
       where: { id: Number(id) },
     });
+
     if (!document) {
       console.log(`Document with id ${id} not found in database`);
       return res.status(404).json({ message: 'Document not found in database' });
     }
+
+    console.log(`Document found in database:`, JSON.stringify(document, null, 2));
     
-    console.log(`Document found in database: ${JSON.stringify(document)}`);
-    const filePath = path.join(process.cwd(), document.filePath);
-    console.log(`Full file path: ${filePath}`);
+    // Adjust file path for Vercel
+    let filePath = process.env.NODE_ENV === 'production'
+      ? path.join('/tmp', document.filePath)
+      : path.join(process.cwd(), 'public', document.filePath);
     
+    console.log(`Attempting to access file at: ${filePath}`);
+
     if (!fs.existsSync(filePath)) {
-      console.log(`File not found on server: ${filePath}`);
+      console.error(`File not found: ${filePath}`);
       return res.status(404).json({ message: 'File not found on server' });
     }
-    
+
+    console.log(`File exists. Checking permissions...`);
+    try {
+      fs.accessSync(filePath, fs.constants.R_OK);
+      console.log(`File is readable`);
+    } catch (err) {
+      console.error(`Permission error: Cannot read file ${filePath}`, err);
+      return res.status(403).json({ message: 'Permission denied: Cannot read file' });
+    }
+
     const stats = fs.statSync(filePath);
     console.log(`File size: ${stats.size} bytes`);
-    
+
     if (stats.size === 0) {
       console.log(`File is empty: ${filePath}`);
       return res.status(404).json({ message: 'File is empty' });
     }
-    
+
     const fileExtension = path.extname(document.name).toLowerCase();
     let contentType = 'application/octet-stream';
     if (fileExtension === '.xlsx' || fileExtension === '.xls') {
@@ -94,16 +113,17 @@ async function getDocumentContent(req: NextApiRequest, res: NextApiResponse) {
     } else if (fileExtension === '.docx' || fileExtension === '.doc') {
       contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
     }
-    
+
+    console.log(`Sending file with Content-Type: ${contentType}`);
     res.setHeader('Content-Disposition', `attachment; filename=${encodeURIComponent(document.name)}`);
     res.setHeader('Content-Type', contentType);
     res.setHeader('Content-Length', stats.size);
-    
+
     const fileStream = fs.createReadStream(filePath);
     fileStream.pipe(res);
   } catch (error) {
-    console.error('Error fetching document content:', error);
-    res.status(500).json({ message: 'Error fetching document content', error: error instanceof Error ? error.message : 'Unknown error' });
+    console.error('Error in getDocumentContent:', error);
+    res.status(500).json({ message: 'Server error while fetching document', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 }
 
@@ -131,7 +151,10 @@ async function uploadDocument(req: NextApiRequest, res: NextApiResponse) {
     console.log("File path:", file.filepath);
 
     try {
-      const relativeFilePath = path.relative(process.cwd(), file.filepath);
+      // Ensure the path is relative to uploadDir
+      const relativeFilePath = path.relative(uploadDir, file.filepath);
+      console.log("Relative file path:", relativeFilePath);
+
       const fileExtension = path.extname(file.originalFilename || '').toLowerCase();
       const type = fileExtension === '.docx' || fileExtension === '.doc' ? 'word' : 
                    fileExtension === '.xlsx' || fileExtension === '.xls' ? 'excel' : 'other';
@@ -141,17 +164,26 @@ async function uploadDocument(req: NextApiRequest, res: NextApiResponse) {
         data: {
           name: file.originalFilename || 'Unnamed',
           type: type,
-          filePath: relativeFilePath,
+          filePath: path.join('uploads', relativeFilePath).replace(/\\/g, '/'), // Ensure forward slashes
           uploadedBy: 1, // Replace with actual employee ID or get from session
         },
       });
 
       console.log("Document created successfully:", document);
+
+      // Verify file exists after upload
+      const fullPath = path.join(uploadDir, relativeFilePath);
+      if (fs.existsSync(fullPath)) {
+        console.log("File verified on server:", fullPath);
+      } else {
+        console.error("File not found after upload:", fullPath);
+      }
+
       res.status(200).json({ message: 'File uploaded successfully', document });
     } catch (error) {
       console.error('Error saving to database:', error);
       if (error instanceof Error) {
-        res.status(500).json({ message: 'Error saving file information', error: error.message, stack: error.stack });
+        res.status(500).json({ message: 'Error saving file information', error: error.message });
       } else {
         res.status(500).json({ message: 'Error saving file information', error: 'Unknown error' });
       }
@@ -171,7 +203,10 @@ async function deleteDocument(req: NextApiRequest, res: NextApiResponse) {
       return res.status(404).json({ message: 'Document not found' });
     }
 
-    const filePath = path.join(process.cwd(), document.filePath);
+    const filePath = process.env.NODE_ENV === 'production'
+      ? path.join('/tmp', document.filePath)
+      : path.join(process.cwd(), 'public', document.filePath);
+
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
