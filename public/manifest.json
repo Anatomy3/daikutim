@@ -1,0 +1,17 @@
+{
+    "name": "Daiku Interior App",
+    "short_name": "Daiku",
+    "icons": [
+      {
+        "src": "https://daikuinterior.com/daiku/logo.png",
+        "sizes": "192x192 512x512",
+        "type": "image/png",
+        "purpose": "any maskable"
+      }
+    ],
+    "theme_color": "#FFFFFF",
+    "background_color": "#FFFFFF",
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "portrait"
+  }

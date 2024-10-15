@@ -1,0 +1,175 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #ffffff;
+  font-family: 'Poppins', sans-serif;
+}
+
+.layout {
+  display: flex;
+  flex: 1;
+}
+
+.sidebar {
+  width: 250px;
+  background-color: #ffb74d;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+  margin-left: 16rem;
+  margin-top: 4rem;
+  background-color: #ffffff;
+  min-height: calc(100vh - 4rem);
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex-grow: 1;
+}
+
+.formGroup {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.formGroup label {
+  margin-bottom: 5px;
+  font-weight: 500;
+  color: #333;
+}
+
+.inputField, .selectField {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+.uploadButton {
+  background-color: #45a049;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  transition: background-color 0.3s ease;
+  width: 100%;
+}
+
+.uploadButton:hover {
+  background-color: #388e3c;
+}
+
+.footerLink {
+  text-align: center;
+  color: #808080;
+  margin-top: 10px;
+  font-family: 'Poppins', sans-serif;
+  display: block;
+  text-decoration: none;
+}
+
+.footerLink:hover {
+  color: #45a049;
+  text-decoration: underline;
+}
+
+.dateTimeGroup {
+  display: flex;
+  gap: 10px;
+}
+
+.dateTimeGroup .inputField {
+  width: calc(50% - 5px);
+}
+
+.timeGroup {
+  display: flex;
+  gap: 10px;
+}
+
+.timeGroup .formGroup {
+  flex: 1;
+}
+
+.copyright {
+  padding: 5px 10px;
+  text-align: left;
+  font-size: 0.8rem;
+  background-color: white;
+  border-radius: 6px;
+  display: inline-block;
+  width: auto;
+  line-height: 1;
+  margin-top: auto;
+  font-family: 'Poppins', sans-serif;
+}
+
+.copyright a {
+  color: #666;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  display: block;
+}
+
+.copyright a:hover {
+  color: #4CAF50;
+}
+
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .content {
+    margin-left: 0;
+    padding: 10px;
+    margin-top: 60px;
+  }
+
+  .uploadButton {
+    font-size: 0.9rem;
+    padding: 10px;
+  }
+
+  .dateTimeGroup {
+    flex-direction: column;
+  }
+
+  .dateTimeGroup .inputField {
+    width: 100%;
+  }
+
+  .copyright {
+    margin-bottom: 6px;
+    width: calc(100% - 18px);
+    margin-left: 2px;
+    margin-right: 12px;
+  }
+
+  .timeGroup {
+    flex-direction: column;
+  }
+}
