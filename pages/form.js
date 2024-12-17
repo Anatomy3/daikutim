@@ -1,231 +1,456 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import { Plus, FileText, FileSpreadsheet, File, Trash2, Download, Info } from 'lucide-react';
-import styles from '../styles/form.module.css';
+import styles from '../styles/KelolaKaryawan.module.css';
+import { FaEllipsisV, FaEnvelope, FaWhatsapp, FaEye, FaEyeSlash } from 'react-icons/fa';
 
-const Form = () => {
-  const [uploadStatus, setUploadStatus] = useState(null);
-  const [documents, setDocuments] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+export default function KelolaKaryawan() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [employees, setEmployees] = useState([]);
+  const [isAdding, setIsAdding] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [selectedEmployeeReports, setSelectedEmployeeReports] = useState([]);
+  const [loadingReports, setLoadingReports] = useState(false);
+  const [newEmployee, setNewEmployee] = useState({
+    username: '',
+    fullName: '',
+    email: '',
+    department: '',
+    password: '',
+    whatsapp: '',
+    role: 'karyawan',
+  });
+  const [photo, setPhoto] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [currentEmployee, setCurrentEmployee] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
-    fetchDocuments();
+    fetchEmployees();
   }, []);
 
-  const fetchDocuments = async () => {
-    setIsLoading(true);
-    setError(null);
+  const fetchEmployees = async () => {
     try {
-      const response = await fetch('/api/form');
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      const response = await fetch('/api/kelola_karyawan');
       const data = await response.json();
-      setDocuments(data);
+      setEmployees(data);
     } catch (error) {
-      console.error('Error fetching documents:', error);
-      setError('Gagal mengambil dokumen. ' + error.message);
-    } finally {
-      setIsLoading(false);
+      console.error('Error fetching employees:', error);
     }
   };
 
-  const handleFileUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
 
-    console.log("File dipilih:", file.name);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewEmployee({ ...newEmployee, [name]: value });
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    setPhoto(file);
+    if (file) {
+      const previewURL = URL.createObjectURL(file);
+      setPhotoPreview(previewURL);
+    }
+  };
+
+  const handleReportClick = async (employee) => {
+    setLoadingReports(true);
+    try {
+      const response = await fetch(`/api/kelola_karyawan?namaLengkap=${encodeURIComponent(employee.fullName)}`);
+      if (!response.ok) throw new Error('Failed to fetch reports');
+      const data = await response.json();
+      setSelectedEmployeeReports(data);
+      setShowReportModal(true);
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoadingReports(false);
+    }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleAddNewEmployee = async () => {
+    if (!newEmployee.username || !newEmployee.password || !newEmployee.fullName || !newEmployee.role) {
+      alert('Please fill in all required fields.');
+      return;
+    }
 
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('username', newEmployee.username);
+    formData.append('fullName', newEmployee.fullName);
+    formData.append('email', newEmployee.email);
+    formData.append('department', newEmployee.department);
+    formData.append('password', newEmployee.password);
+    formData.append('whatsapp', newEmployee.whatsapp);
+    formData.append('role', newEmployee.role);
+    if (photo) formData.append('photo', photo);
 
     try {
-      console.log("Mengirim file ke server...");
-      const response = await fetch('/api/form', {
+      const response = await fetch('/api/kelola_karyawan', {
         method: 'POST',
         body: formData,
       });
 
-      console.log("Status respons server:", response.status);
-
-      if (!response.ok) {
+      if (response.ok) {
+        const { newEmployee: addedEmployee } = await response.json();
+        setEmployees([...employees, addedEmployee]);
+        setIsAdding(false);
+        resetForm();
+      } else {
         const errorData = await response.json();
-        console.error("Detail kesalahan server:", errorData);
-        throw new Error(`HTTP error! status: ${response.status}, pesan: ${errorData.message}`);
+        alert(`Error: ${errorData.error}`);
+        console.error('Failed to save employee:', errorData);
       }
-
-      const data = await response.json();
-      console.log("Unggah berhasil:", data);
-      setUploadStatus(`Dokumen ${data.document.name} berhasil diunggah`);
-      fetchDocuments();
     } catch (error) {
-      console.error('Error mengunggah dokumen:', error);
-      setUploadStatus('Gagal mengunggah dokumen. ' + error.message);
+      console.error('Error:', error);
     }
   };
 
-  const handleDeleteDocument = async (id) => {
+  const handleEdit = (employee) => {
+    setIsEditing(true);
+    setIsAdding(true);
+    setCurrentEmployee(employee);
+    setNewEmployee({
+      username: employee.username,
+      fullName: employee.fullName,
+      email: employee.email,
+      department: employee.department,
+      password: '',
+      whatsapp: employee.whatsapp,
+      role: employee.role || 'karyawan',
+    });
+    setPhotoPreview(employee.photo || '/daiku/profile.png');
+  };
+
+  const handleSaveEdit = async () => {
+    if (!currentEmployee || !currentEmployee.id) {
+      console.error('ID karyawan tidak ditemukan');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('username', newEmployee.username);
+    formData.append('fullName', newEmployee.fullName);
+    formData.append('email', newEmployee.email);
+    formData.append('department', newEmployee.department);
+    if (newEmployee.password) formData.append('password', newEmployee.password);
+    formData.append('whatsapp', newEmployee.whatsapp);
+    formData.append('role', newEmployee.role);
+    if (photo) formData.append('photo', photo);
+
     try {
-      const response = await fetch(`/api/form?id=${id}`, {
-        method: 'DELETE',
+      const response = await fetch(`/api/kelola_karyawan/${currentEmployee.id}`, {
+        method: 'PUT',
+        body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      setUploadStatus('Dokumen berhasil dihapus');
-      fetchDocuments();
-    } catch (error) {
-      console.error('Error menghapus dokumen:', error);
-      setUploadStatus('Gagal menghapus dokumen. ' + error.message);
-    }
-  };
-
-  const handleDownload = async (id, name) => {
-    try {
-      console.log(`Attempting to download document: ${name} (ID: ${id})`);
-      const response = await fetch(`/api/form?id=${id}`);
-      console.log(`Download response status: ${response.status}`);
-      
-      if (!response.ok) {
+      if (response.ok) {
+        const updatedEmployees = employees.map((emp) =>
+          emp.id === currentEmployee.id
+            ? { ...newEmployee, id: currentEmployee.id, photo: photoPreview || '/daiku/profile.png' }
+            : emp
+        );
+        setEmployees(updatedEmployees);
+        setIsEditing(false);
+        setIsAdding(false);
+        resetForm();
+      } else {
         const errorData = await response.json();
-        console.error('Error response:', errorData);
-        throw new Error(`Gagal mengambil dokumen: ${errorData.message || response.statusText}`);
+        alert(`Error: ${errorData.message}`);
+        console.error('Failed to save employee:', errorData);
       }
-      
-      const contentType = response.headers.get('content-type');
-      console.log(`Content-Type: ${contentType}`);
-      
-      if (contentType && contentType.includes('application/json')) {
-        const errorData = await response.json();
-        console.error('Error in response:', errorData);
-        throw new Error(`Server mengembalikan error: ${errorData.message}`);
-      }
-      
-      const blob = await response.blob();
-      console.log(`Blob size: ${blob.size} bytes`);
-      
-      if (blob.size === 0) {
-        throw new Error('File kosong atau tidak ditemukan di server');
-      }
-      
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = name;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      console.log('Download completed');
     } catch (error) {
-      console.error('Error mengunduh dokumen:', error);
-      setUploadStatus(`Gagal mengunduh dokumen ${name}. ${error.message}`);
+      console.error('Error:', error);
     }
   };
 
-  const getDocumentIcon = (type) => {
-    switch (type) {
-      case 'word':
-        return <FileText size={24} color="#4285F4" />;
-      case 'excel':
-        return <FileSpreadsheet size={24} color="#0F9D58" />;
-      default:
-        return <File size={24} />;
+  const handleDelete = async (id) => {
+    const confirmed = confirm('Apakah Anda yakin ingin menghapus karyawan ini?');
+    if (confirmed) {
+      try {
+        const response = await fetch(`/api/kelola_karyawan/${id}`, { method: 'DELETE' });
+        if (response.ok) {
+          setEmployees(employees.filter((employee) => employee.id !== id));
+        } else {
+          console.error('Failed to delete employee');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
     }
   };
 
-  const handleDocumentClick = (doc) => {
-    if (doc.name === 'BO 1.6.2 Nilai KP-Magang.xlsx') {
-      window.open('https://docs.google.com/spreadsheets/d/15JFhUjYqJ8nv4aYltIQu9MtCYUJ0zF97/edit?usp=drive_link&ouid=117898654357318944711&rtpof=true&sd=true', '_blank');
-    } else {
-      handleDownload(doc.id, doc.name);
-    }
+  const resetForm = () => {
+    setNewEmployee({
+      username: '',
+      fullName: '',
+      email: '',
+      department: '',
+      password: '',
+      whatsapp: '',
+      role: 'karyawan',
+    });
+    setPhoto(null);
+    setPhotoPreview(null);
   };
 
   return (
-    <div className={styles.pageContainer}>
-      <Sidebar />
-      <div className={styles.mainContent}>
-        <Navbar />
-        <div className={styles.contentContainer}>
-          <div className={styles.infoBox}>
-            <Info className={styles.infoIcon} />
-            <div className={styles.infoContent}>
-              <h2 className={styles.infoTitle}>Info</h2>
-              <ul className={styles.infoList}>
-                <li>Klik tanda + untuk mengunggah dokumen</li>
-                <li>Pastikan dokumen yang diunggah sesuai dengan format yang ditentukan</li>
-                <li>Dokumen yang diunggah akan tersimpan dan dapat diakses kembali nanti</li>
-              </ul>
-            </div>
-          </div>
-          <div className={styles.uploadSection}>
-            <label className={styles.uploadButton}>
-              <Plus size={24} />
-              <input type="file" onChange={handleFileUpload} style={{ display: 'none' }} />
-            </label>
-            <span>Unggah Dokumen</span>
-          </div>
-          {isLoading ? (
-            <div className={styles.loading}>Memuat dokumen...</div>
-          ) : error ? (
-            <div className={styles.error}>{error}</div>
-          ) : documents.length > 0 ? (
-            <div className={styles.documentList}>
-              {documents.map((doc) => (
-                <div key={doc.id} className={styles.documentItem}>
-                  <div className={styles.documentInfo} onClick={() => handleDocumentClick(doc)}>
-                    <div className={styles.documentIcon}>
-                      {getDocumentIcon(doc.type)}
-                    </div>
-                    <span className={styles.documentName}>{doc.name}</span>
-                    <span className={styles.documentType}>{doc.type}</span>
-                  </div>
-                  <div className={styles.documentActions}>
-                    <button 
-                      className={styles.actionButton}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDownload(doc.id, doc.name);
-                      }}
-                    >
-                      <Download size={18} />
-                    </button>
-                    <button
-                      className={styles.actionButton}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteDocument(doc.id);
-                      }}
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className={styles.noDocuments}>Tidak ada dokumen yang diunggah</div>
-          )}
-          {uploadStatus && (
-            <div className={`${styles.notification} ${styles.uploadNotification}`}>
-              {uploadStatus}
-            </div>
-          )}
+    <main className={styles.mainContent}>
+      <Navbar />
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Kelola Karyawan</h1>
+          <button
+            className={styles.addButton}
+            onClick={() => {
+              setIsAdding(!isAdding);
+              setIsEditing(false);
+            }}
+          >
+            {isAdding ? 'Tutup' : '+ Tambah Karyawan'}
+          </button>
         </div>
-        <div className={styles.copyright}>
-          <a href="https://daikuinterior.com" target="_blank" rel="noopener noreferrer">
-            daikuinterior.com © {new Date().getFullYear()}
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-};
 
-export default Form;
+        <div className={styles.searchContainer}>
+          <input
+            type="text"
+            placeholder="Cari karyawan..."
+            value={searchTerm}
+            onChange={handleSearch}
+            className={styles.searchInput}
+          />
+        </div>
+
+        <div className={styles.employeeCards}>
+          {employees.length > 0 ? (
+            employees
+              .filter((employee) =>
+                employee.fullName.toLowerCase().includes(searchTerm.toLowerCase())
+              )
+              .map((employee) => (
+                <div key={employee.id} className={styles.card}>
+                  <div className={styles.cardHeader}>
+                    <img
+                      src={employee.photo || '/daiku/profile.png'}
+                      alt={employee.fullName}
+                      className={styles.employeePhoto}
+                    />
+                    <div className={styles.employeeInfo}>
+                      <p className={styles.employeeName}>{employee.fullName}</p>
+                      <p className={styles.department}>{employee.department}</p>
+                    </div>
+                    <div className={styles.hamburgerMenu}>
+                      <button
+                        onClick={() =>
+                          setIsMenuOpen(isMenuOpen === employee.id ? null : employee.id)
+                        }
+                        className={styles.hamburgerIcon}
+                      >
+                        <FaEllipsisV />
+                      </button>
+                      {isMenuOpen === employee.id && (
+                        <div className={styles.menu}>
+                          <button onClick={() => handleEdit(employee)}>Edit</button>
+                          <button onClick={() => handleDelete(employee.id)}>Hapus</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className={styles.contactInfo}>
+                    <p>
+                      <FaEnvelope className={styles.icon} />
+                      <span>{employee.email || '-'}</span>
+                    </p>
+                    <p>
+                      <FaWhatsapp className={styles.icon} />
+                      <span>{employee.whatsapp || '-'}</span>
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => handleReportClick(employee)}
+                    className={styles.reportButton}
+                  >
+                    Lihat Laporan Harian
+                  </button>
+                </div>
+              ))
+          ) : (
+            <p style={{ textAlign: 'center' }}>Tidak ada data karyawan.</p>
+          )}
+        </div>
+
+        {(isAdding || isEditing) && (
+          <div className={styles.modal}>
+            <div className={styles.modalContent}>
+              <button
+                className={styles.modalCloseButton}
+                onClick={() => {
+                  setIsAdding(false);
+                  setIsEditing(false);
+                  resetForm();
+                }}
+              >
+                &times;
+              </button>
+              <h2>{isEditing ? 'Edit Karyawan' : 'Tambah Karyawan Baru'}</h2>
+              <div className={styles.formGroup}>
+                <label>Nama Lengkap</label>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={newEmployee.fullName}
+                  onChange={handleInputChange}
+                  className={styles.inputField}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Foto (Upload)</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoChange}
+                  className={styles.inputField}
+                />
+                {photoPreview && (
+                  <img
+                    src={photoPreview}
+                    alt="Preview"
+                    className={styles.photoPreview}
+                  />
+                )}
+              </div>
+              <div className={styles.formGroup}>
+                <label>Username</label>
+                <input
+                  type="text"
+                  name="username"
+                  value={newEmployee.username}
+                  onChange={handleInputChange}
+                  className={styles.inputField}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Password</label>
+                <div className={styles.passwordInputContainer}>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={newEmployee.password}
+                    onChange={handleInputChange}
+                    className={styles.inputField}
+                  />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className={styles.passwordToggle}
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
+              </div>
+              <div className={styles.formGroup}>
+                <label>Role</label>
+                <select
+                  name="role"
+                  value={newEmployee.role}
+                  onChange={handleInputChange}
+                  className={styles.inputField}
+                >
+                  <option value="karyawan">Karyawan</option>
+                  <option value="admin">Admin</option>
+                  <option value="karyawan dan admin">Karyawan dan Admin</option>
+                </select>
+              </div>
+              <div className={styles.formGroup}>
+                <label>Departemen</label>
+                <input
+                  type="text"
+                  name="department"
+                  value={newEmployee.department}
+                  onChange={handleInputChange}
+                  className={styles.inputField}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={newEmployee.email}
+                  onChange={handleInputChange}
+                  className={styles.inputField}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Nomor WhatsApp</label>
+                <input
+                  type="text"
+                  name="whatsapp"
+                  value={newEmployee.whatsapp}
+                  onChange={handleInputChange}
+                  className={styles.inputField}
+                />
+              </div>
+              <button
+                className={styles.addButton}
+                onClick={isEditing ? handleSaveEdit : handleAddNewEmployee}
+              >
+                {isEditing ? 'Simpan' : 'Selesai'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showReportModal && (
+          <div className={styles.modal}>
+            <div className={styles.modalContent}>
+              <button
+                className={styles.modalCloseButton}
+                onClick={() => setShowReportModal(false)}
+              >
+                &times;
+              </button>
+              <h2>Laporan Karyawan</h2>
+              {loadingReports ? (
+                <div className={styles.loading}>Memuat laporan...</div>
+              ) : selectedEmployeeReports.length > 0 ? (
+                <div className={styles.reportTable}>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Tanggal</th>
+                        <th>Jam Kerja</th>
+                        <th>Progress</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedEmployeeReports.map((report) => (
+                        <tr key={report.id}>
+                          <td>{new Date(report.tanggalLaporan).toLocaleDateString()}</td>
+                          <td>{report.dariJam} - {report.hinggaJam}</td>
+                          <td>{report.progressHarian}</td>
+                          <td>{report.statusHarian}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p>Tidak ada laporan untuk karyawan ini.</p>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
+  );
+}

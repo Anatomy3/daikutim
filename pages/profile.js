@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import styles from '../styles/Profile.module.css';
 import { FaEnvelope, FaWhatsapp, FaUser, FaBuilding, FaLock, FaUserCircle, FaEye, FaEyeSlash } from 'react-icons/fa';
@@ -134,73 +133,70 @@ export default function Profile() {
   if (error) return <div className={styles.error}>{error}</div>;
 
   return (
-    <div className={styles.pageContainer}>
-      <Sidebar />
-      <div className={styles.mainContent}>
-        <Navbar />
-        <div className={styles.profileWrapper}>
-          <div className={styles.profileCard}>
-            <div className={styles.photoSection}>
-              <img src={photoPreview} alt="Profile" className={styles.profilePhoto} />
-              <label htmlFor="photo-upload" className={styles.photoUploadButton}>
-                Ubah
-              </label>
+    <main className={styles.mainContent}>
+      <Navbar />
+      <div className={styles.profileWrapper}>
+        <div className={styles.profileCard}>
+          <div className={styles.photoSection}>
+            <img src={photoPreview} alt="Profile" className={styles.profilePhoto} />
+            <label htmlFor="photo-upload" className={styles.photoUploadButton}>
+              Ubah
+            </label>
+            <input
+              id="photo-upload"
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              className={styles.hiddenInput}
+            />
+          </div>
+          <div className={styles.formSection}>
+            <div className={styles.formGroup}>
+              <label><FaUser /> Nama Lengkap</label>
               <input
-                id="photo-upload"
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoChange}
-                className={styles.hiddenInput}
+                type="text"
+                name="fullName"
+                value={newEmployee.fullName}
+                onChange={handleInputChange}
+                className={styles.inputField}
               />
             </div>
-            <div className={styles.formSection}>
-              <div className={styles.formGroup}>
-                <label><FaUser /> Nama Lengkap</label>
-                <input
-                  type="text"
-                  name="fullName"
-                  value={newEmployee.fullName}
-                  onChange={handleInputChange}
-                  className={styles.inputField}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label><FaBuilding /> Departemen</label>
-                <input
-                  type="text"
-                  name="department"
-                  value={newEmployee.department}
-                  onChange={handleInputChange}
-                  className={styles.inputField}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label><FaEnvelope /> Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={newEmployee.email}
-                  onChange={handleInputChange}
-                  className={styles.inputField}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label><FaWhatsapp /> Nomor WhatsApp</label>
-                <input
-                  type="text"
-                  name="whatsapp"
-                  value={newEmployee.whatsapp}
-                  onChange={handleInputChange}
-                  className={styles.inputField}
-                />
-              </div>
-              <button className={styles.changeCredentialsButton} onClick={() => setShowCredentialsModal(true)}>
-                Ubah Username/Password
-              </button>
-              <button className={styles.saveButton} onClick={handleSaveEdit}>
-                Simpan Perubahan
-              </button>
+            <div className={styles.formGroup}>
+              <label><FaBuilding /> Departemen</label>
+              <input
+                type="text"
+                name="department"
+                value={newEmployee.department}
+                onChange={handleInputChange}
+                className={styles.inputField}
+              />
             </div>
+            <div className={styles.formGroup}>
+              <label><FaEnvelope /> Email</label>
+              <input
+                type="email"
+                name="email"
+                value={newEmployee.email}
+                onChange={handleInputChange}
+                className={styles.inputField}
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label><FaWhatsapp /> Nomor WhatsApp</label>
+              <input
+                type="text"
+                name="whatsapp"
+                value={newEmployee.whatsapp}
+                onChange={handleInputChange}
+                className={styles.inputField}
+              />
+            </div>
+            <button className={styles.changeCredentialsButton} onClick={() => setShowCredentialsModal(true)}>
+              Ubah Username/Password
+            </button>
+            <button className={styles.saveButton} onClick={handleSaveEdit}>
+              Simpan Perubahan
+            </button>
           </div>
         </div>
       </div>
@@ -246,6 +242,6 @@ export default function Profile() {
         </div>
       )}
       <ToastContainer />
-    </div>
+    </main>
   );
 }

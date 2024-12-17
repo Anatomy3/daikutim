@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import styles from '../styles/Dashboard.module.css';
 
@@ -18,8 +17,10 @@ export default function Dashboard() {
   useEffect(() => {
     const peranTersimpan = localStorage.getItem('userRole');
     const idPenggunaTersimpan = localStorage.getItem('userId');
-    setPeran(peranTersimpan);
-    setIdPengguna(idPenggunaTersimpan);
+    if (peranTersimpan && idPenggunaTersimpan) {
+      setPeran(peranTersimpan);
+      setIdPengguna(idPenggunaTersimpan);
+    }
   }, []);
 
   useEffect(() => {
@@ -95,7 +96,7 @@ export default function Dashboard() {
           ) : (
             <p>Tidak ada laporan yang ditemukan.</p>
           )}
-          </div>
+        </div>
         <div className={styles.barisKartu}>
           <div className={styles.kartu}>
             <h3>Status Laporan Harian</h3>
@@ -155,12 +156,9 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="flex">
-      <Sidebar />
-      <div className={styles.kontenUtama}>
-        <Navbar />
-        {renderDashboardAdmin()}
-      </div>
-    </div>
+    <main className={styles.kontenUtama}>
+      <Navbar />
+      {renderDashboardAdmin()}
+    </main>
   );
 }

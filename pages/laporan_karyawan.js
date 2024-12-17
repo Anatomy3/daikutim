@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import Sidebar from '../components/Sidebar';
 import styles from '../styles/LaporanKaryawan.module.css';
 
 export default function LaporanKaryawan() {
@@ -64,84 +63,79 @@ export default function LaporanKaryawan() {
   }, []);
 
   return (
-    <div className={styles.mainContainer}>
+    <main className={styles.mainContainer}>
       <Navbar />
-      <div className={styles.layout}>
-        <Sidebar />
-        <div
-          className={`${styles.content} ${isMobile ? styles.mobileContent : ''}`}
-        >
-          <div className={styles.header}>
-            <h1 className={styles.title}>Laporan Harian Karyawan</h1>
-            <button className={styles.filterButton} onClick={handleFilterToggle}>
-              Filter
-            </button>
+      <div className={`${styles.content} ${isMobile ? styles.mobileContent : ''}`}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Laporan Harian Karyawan</h1>
+          <button className={styles.filterButton} onClick={handleFilterToggle}>
+            Filter
+          </button>
+        </div>
+
+        {filterVisible && (
+          <div className={styles.filterOptions}>
+            <label>Status Laporan</label>
+            <select
+              className={styles.filterSelect}
+              value={filterStatus}
+              onChange={handleFilterStatusChange}
+            >
+              <option value="">Semua</option>
+              <option value="Selesai">Selesai</option>
+              <option value="Belum Selesai">Belum Selesai</option>
+              <option value="Tertunda">Tertunda</option>
+            </select>
           </div>
+        )}
 
-          {filterVisible && (
-            <div className={styles.filterOptions}>
-              <label>Status Laporan</label>
-              <select
-                className={styles.filterSelect}
-                value={filterStatus}
-                onChange={handleFilterStatusChange}
-              >
-                <option value="">Semua</option>
-                <option value="Selesai">Selesai</option>
-                <option value="Belum Selesai">Belum Selesai</option>
-                <option value="Tertunda">Tertunda</option>
-              </select>
-            </div>
-          )}
+        <div className={styles.searchContainer}>
+          <input
+            type="text"
+            placeholder="Cari karyawan..."
+            className={styles.searchInput}
+            value={searchTerm}
+            onChange={handleSearch}
+          />
+        </div>
 
-          <div className={styles.searchContainer}>
-            <input
-              type="text"
-              placeholder="Cari karyawan..."
-              className={styles.searchInput}
-              value={searchTerm}
-              onChange={handleSearch}
-            />
-          </div>
-
-          <div className={styles.laporanTable}>
-            {isLoading ? (
-              <p>Memuat laporan...</p>
-            ) : filteredLaporan.length > 0 ? (
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Nama Lengkap</th>
-                    <th>Tanggal Laporan</th>
-                    <th>Jam Kerja</th>
-                    <th>Progres Harian</th>
-                    <th>Status</th>
+        <div className={styles.laporanTable}>
+          {isLoading ? (
+            <p>Memuat laporan...</p>
+          ) : filteredLaporan.length > 0 ? (
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Nama Lengkap</th>
+                  <th>Tanggal Laporan</th>
+                  <th>Jam Kerja</th>
+                  <th>Progres Harian</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredLaporan.map((laporan) => (
+                  <tr key={laporan.id}>
+                    <td>{laporan.namaLengkap}</td>
+                    <td>{new Date(laporan.tanggalLaporan).toLocaleDateString()}</td>
+                    <td>{laporan.dariJam} - {laporan.hinggaJam}</td>
+                    <td>{laporan.progressHarian}</td>
+                    <td>{laporan.statusHarian}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {filteredLaporan.map((laporan) => (
-                    <tr key={laporan.id}>
-                      <td>{laporan.namaLengkap}</td>
-                      <td>{new Date(laporan.tanggalLaporan).toLocaleDateString()}</td>
-                      <td>{laporan.dariJam} - {laporan.hinggaJam}</td>
-                      <td>{laporan.progressHarian}</td>
-                      <td>{laporan.statusHarian}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p>Tidak ada laporan yang ditemukan.</p>
-            )}
-          </div>
-          
-          <div className={styles.copyright}>
-            <a href="https://daikuinterior.com" target="_blank" rel="noopener noreferrer">
-              daikuinterior.com © {new Date().getFullYear()}
-            </a>
-          </div>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>Tidak ada laporan yang ditemukan.</p>
+          )}
+        </div>
+        
+        <div className={styles.copyright}>
+          <a href="https://daikuinterior.com" target="_blank" rel="noopener noreferrer">
+            daikuinterior.com © {new Date().getFullYear()}
+          </a>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
