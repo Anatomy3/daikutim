@@ -8,7 +8,8 @@
   align-items: stretch;
   font-family: 'Poppins', sans-serif;
   height: calc(100vh - 3rem);
-  padding-right: 20px; /* Added padding to the right side */
+  padding-right: 20px;
+  background-color: #ffffff;
 }
 
 .kontenDashboard {
@@ -16,6 +17,7 @@
   padding: 14px;
   display: flex;
   flex-direction: column;
+  background-color: #ffffff;
 }
 
 .barisUtama {
@@ -34,7 +36,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  margin-right: 20px; /* Added margin to the right side */
+  margin-right: 20px;
 }
 
 .barisKartu {
@@ -256,11 +258,13 @@
   .kontenUtama {
     margin-left: 0;
     padding: 0px;
-    margin-top: 3rem; /* Increased from 1.5rem to push content slightly below navbar */
+    margin-top: 3rem;
+    background-color: #ffffff;
   }
   
   .kontenDashboard {
-    padding: 10px 15px 10px 10px; /* Keeping the existing padding */
+    padding: 10px 15px 10px 10px;
+    background-color: #ffffff;
   }
 
   .kartuLaporan, .kartu, .copyright {
