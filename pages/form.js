@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
 import { Plus, FileText, FileSpreadsheet, File, Trash2, Download, Info } from 'lucide-react';
 import styles from '../styles/form.module.css';
@@ -148,83 +147,80 @@ const Form = () => {
   };
 
   return (
-    <div className={styles.pageContainer}>
-      <Sidebar />
-      <div className={styles.mainContent}>
-        <Navbar />
-        <div className={styles.contentContainer}>
-          <div className={styles.infoBox}>
-            <Info className={styles.infoIcon} />
-            <div className={styles.infoContent}>
-              <h2 className={styles.infoTitle}>Info</h2>
-              <ul className={styles.infoList}>
-                <li>Klik tanda + untuk mengunggah dokumen</li>
-                <li>Pastikan dokumen yang diunggah sesuai dengan format yang ditentukan</li>
-                <li>Dokumen yang diunggah akan tersimpan dan dapat diakses kembali nanti</li>
-              </ul>
-            </div>
+    <main className={styles.mainContent}>
+      <Navbar />
+      <div className={styles.contentContainer}>
+        <div className={styles.infoBox}>
+          <Info className={styles.infoIcon} />
+          <div className={styles.infoContent}>
+            <h2 className={styles.infoTitle}>Info</h2>
+            <ul className={styles.infoList}>
+              <li>Klik tanda + untuk mengunggah dokumen</li>
+              <li>Pastikan dokumen yang diunggah sesuai dengan format yang ditentukan</li>
+              <li>Dokumen yang diunggah akan tersimpan dan dapat diakses kembali nanti</li>
+            </ul>
           </div>
-          <div className={styles.uploadSection}>
-            <label className={styles.uploadButton}>
-              <Plus size={24} />
-              <input type="file" onChange={handleFileUpload} style={{ display: 'none' }} />
-            </label>
-            <span>Unggah Dokumen</span>
-          </div>
-          {isLoading ? (
-            <div className={styles.loading}>Memuat dokumen...</div>
-          ) : error ? (
-            <div className={styles.error}>{error}</div>
-          ) : documents.length > 0 ? (
-            <div className={styles.documentList}>
-              {documents.map((doc) => (
-                <div key={doc.id} className={styles.documentItem}>
-                  <div className={styles.documentInfo} onClick={() => handleDocumentClick(doc)}>
-                    <div className={styles.documentIcon}>
-                      {getDocumentIcon(doc.type)}
-                    </div>
-                    <span className={styles.documentName}>{doc.name}</span>
-                    <span className={styles.documentType}>{doc.type}</span>
+        </div>
+        <div className={styles.uploadSection}>
+          <label className={styles.uploadButton}>
+            <Plus size={24} />
+            <input type="file" onChange={handleFileUpload} style={{ display: 'none' }} />
+          </label>
+          <span>Unggah Dokumen</span>
+        </div>
+        {isLoading ? (
+          <div className={styles.loading}>Memuat dokumen...</div>
+        ) : error ? (
+          <div className={styles.error}>{error}</div>
+        ) : documents.length > 0 ? (
+          <div className={styles.documentList}>
+            {documents.map((doc) => (
+              <div key={doc.id} className={styles.documentItem}>
+                <div className={styles.documentInfo} onClick={() => handleDocumentClick(doc)}>
+                  <div className={styles.documentIcon}>
+                    {getDocumentIcon(doc.type)}
                   </div>
-                  <div className={styles.documentActions}>
-                    <button 
-                      className={styles.actionButton}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDownload(doc.id, doc.name);
-                      }}
-                    >
-                      <Download size={18} />
-                    </button>
-                    <button
-                      className={styles.actionButton}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteDocument(doc.id);
-                      }}
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+                  <span className={styles.documentName}>{doc.name}</span>
+                  <span className={styles.documentType}>{doc.type}</span>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className={styles.noDocuments}>Tidak ada dokumen yang diunggah</div>
-          )}
-          {uploadStatus && (
-            <div className={`${styles.notification} ${styles.uploadNotification}`}>
-              {uploadStatus}
-            </div>
-          )}
-        </div>
-        <div className={styles.copyright}>
-          <a href="https://daikuinterior.com" target="_blank" rel="noopener noreferrer">
-            daikuinterior.com © {new Date().getFullYear()}
-          </a>
-        </div>
+                <div className={styles.documentActions}>
+                  <button 
+                    className={styles.actionButton}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDownload(doc.id, doc.name);
+                    }}
+                  >
+                    <Download size={18} />
+                  </button>
+                  <button
+                    className={styles.actionButton}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteDocument(doc.id);
+                    }}
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.noDocuments}>Tidak ada dokumen yang diunggah</div>
+        )}
+        {uploadStatus && (
+          <div className={`${styles.notification} ${styles.uploadNotification}`}>
+            {uploadStatus}
+          </div>
+        )}
       </div>
-    </div>
+      <div className={styles.copyright}>
+        <a href="https://daikuinterior.com" target="_blank" rel="noopener noreferrer">
+          daikuinterior.com © {new Date().getFullYear()}
+        </a>
+      </div>
+    </main>
   );
 };
 
