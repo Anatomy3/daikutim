@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
-import Sidebar from '../components/Sidebar';
 import styles from '../styles/LaporanHarian.module.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -74,93 +73,90 @@ export default function LaporanHarian() {
   };
 
   return (
-    <div className={styles.mainContainer}>
+    <main className={styles.mainContainer}>
       <Navbar />
-      <div className={styles.layout}>
-        <Sidebar />
-        <div className={styles.content}>
-          <h1 className={styles.title}>Laporan Harian Karyawan</h1>
+      <div className={styles.content}>
+        <h1 className={styles.title}>Laporan Harian Karyawan</h1>
 
-          <form className={styles.form} onSubmit={handleSubmit}>
-            <div className={styles.formGroup}>
-              <label>Nama Lengkap</label>
-              <input
-                type="text"
-                placeholder="Nama Lengkap"
-                className={styles.inputField}
-                value={namaLengkap}
-                readOnly
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label>Tanggal Laporan</label>
-              <input type="date" className={styles.inputField} value={currentDate} readOnly />
-            </div>
-
-            <div className={styles.timeGroup}>
-              <div className={styles.formGroup}>
-                <label>Dari</label>
-                <input
-                  type="time"
-                  className={styles.inputField}
-                  value={dariJam}
-                  onChange={(e) => setDariJam(e.target.value)}
-                  required
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label>Hingga</label>
-                <input
-                  type="time"
-                  className={styles.inputField}
-                  value={hinggaJam}
-                  onChange={(e) => setHinggaJam(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className={styles.formGroup}>
-              <label>Progres Harian</label>
-              <textarea
-                placeholder="Masukkan progres harian Anda"
-                className={styles.inputField}
-                value={progress}
-                onChange={(e) => setProgress(e.target.value)}
-                rows="4"
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label>Status Harian</label>
-              <select
-                className={styles.selectField}
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                required
-              >
-                <option value="Selesai">Selesai</option>
-                <option value="Belum Selesai">Belum Selesai</option>
-                <option value="Tertunda">Tertunda</option>
-              </select>
-            </div>
-
-            <div className={styles.formGroup}>
-              <button type="submit" className={styles.uploadButton}>Unggah Laporan</button>
-            </div>
-          </form>
-
-          <div className={styles.copyright}>
-            <a href="https://daikuinterior.com" target="_blank" rel="noopener noreferrer">
-              daikuinterior.com © {new Date().getFullYear()}
-            </a>
+        <form className={styles.form} onSubmit={handleSubmit}>
+          <div className={styles.formGroup}>
+            <label>Nama Lengkap</label>
+            <input
+              type="text"
+              placeholder="Nama Lengkap"
+              className={styles.inputField}
+              value={namaLengkap}
+              readOnly
+            />
           </div>
 
-          <ToastContainer />
+          <div className={styles.formGroup}>
+            <label>Tanggal Laporan</label>
+            <input type="date" className={styles.inputField} value={currentDate} readOnly />
+          </div>
+
+          <div className={styles.timeGroup}>
+            <div className={styles.formGroup}>
+              <label>Dari</label>
+              <input
+                type="time"
+                className={styles.inputField}
+                value={dariJam}
+                onChange={(e) => setDariJam(e.target.value)}
+                required
+              />
+            </div>
+            <div className={styles.formGroup}>
+              <label>Hingga</label>
+              <input
+                type="time"
+                className={styles.inputField}
+                value={hinggaJam}
+                onChange={(e) => setHinggaJam(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Progres Harian</label>
+            <textarea
+              placeholder="Masukkan progres harian Anda"
+              className={styles.inputField}
+              value={progress}
+              onChange={(e) => setProgress(e.target.value)}
+              rows="4"
+              required
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label>Status Harian</label>
+            <select
+              className={styles.selectField}
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              required
+            >
+              <option value="Selesai">Selesai</option>
+              <option value="Belum Selesai">Belum Selesai</option>
+              <option value="Tertunda">Tertunda</option>
+            </select>
+          </div>
+
+          <div className={styles.formGroup}>
+            <button type="submit" className={styles.uploadButton}>Unggah Laporan</button>
+          </div>
+        </form>
+
+        <div className={styles.copyright}>
+          <a href="https://daikuinterior.com" target="_blank" rel="noopener noreferrer">
+            daikuinterior.com © {new Date().getFullYear()}
+          </a>
         </div>
+
+        <ToastContainer />
       </div>
-    </div>
+    </main>
   );
 }
